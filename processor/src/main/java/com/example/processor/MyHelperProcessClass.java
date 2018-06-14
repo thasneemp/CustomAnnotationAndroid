@@ -1,12 +1,11 @@
 package com.example.processor;
 
-import com.example.annotation.MyLogger;
+import com.example.annotation.ActivityHelper;
 import com.google.auto.service.AutoService;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
-import com.squareup.javapoet.TypeVariableName;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -29,10 +28,7 @@ import javax.lang.model.util.Elements;
 import javax.tools.Diagnostic;
 
 @AutoService(Processor.class)
-public class MyLoggerClass extends AbstractProcessor {
-    private static final String KEY_PARAM_NAME = "args";
-    private static final String METHOD_LOG = "log";
-    private static final String CLASS_SUFFIX = "_Log";
+public class MyHelperProcessClass extends AbstractProcessor {
     private Messager mMessager;
     private Filer mFiler;
     private Map<String, String> activitiesWithPackage;
@@ -42,7 +38,7 @@ public class MyLoggerClass extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> set, RoundEnvironment roundEnvironment) {
-        Set<? extends Element> elementsa = roundEnvironment.getElementsAnnotatedWith(MyLogger.class);
+        Set<? extends Element> elementsa = roundEnvironment.getElementsAnnotatedWith(ActivityHelper.class);
 
 
         for (Element element : elementsa) {
@@ -59,7 +55,7 @@ public class MyLoggerClass extends AbstractProcessor {
         //create a class to wrap our method
         //the class name will be the annotated class name + _Log
 
-        TypeSpec.Builder builder = TypeSpec.classBuilder("UserLog").addModifiers(Modifier.PUBLIC, Modifier.FINAL);
+        TypeSpec.Builder builder = TypeSpec.classBuilder("ActivityRunner").addModifiers(Modifier.PUBLIC, Modifier.FINAL);
 
         for (Map.Entry<String, String> element : activitiesWithPackage.entrySet()) {
             String activityName = element.getKey();
@@ -68,12 +64,20 @@ public class MyLoggerClass extends AbstractProcessor {
             MethodSpec intentMethod = MethodSpec
                     .methodBuilder("start" + activityName)
                     .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-                    .returns(classContext)
+                    .returns(classIntent)
                     .addParameter(classContext, "context")
                     .addStatement("return new $T($L, $L)", classIntent, "context", activityClass + ".class")
                     .build();
 
+            MethodSpec getClass = MethodSpec
+                    .methodBuilder("getClass" + activityName)
+                    .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                    .returns(Class.class)
+                    .addStatement("return  $T.class", activityClass)
+                    .build();
+
             builder.addMethod(intentMethod);
+            builder.addMethod(getClass);
         }
         try {
             JavaFile.builder("com.annotationsample", builder.build())
@@ -98,7 +102,7 @@ public class MyLoggerClass extends AbstractProcessor {
     @Override
     public Set<String> getSupportedAnnotationTypes() {
         Set<String> annotations = new HashSet<>();
-        annotations.add(MyLogger.class.getCanonicalName());
+        annotations.add(ActivityHelper.class.getCanonicalName());
         return annotations;
     }
 

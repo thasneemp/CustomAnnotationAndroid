@@ -1,6 +1,6 @@
 package com.example.thasneem.annotation;
 
-import com.example.annotation.MyLogger;
+import com.example.annotation.ActivityHelper;
 
 /**
  * File Description
@@ -11,6 +11,7 @@ import com.example.annotation.MyLogger;
  * Project : CustomAnnotationAndroid
  * Company : Farabi Technology
  */
-
+@ActivityHelper
 public class UserModel {
+
 }
